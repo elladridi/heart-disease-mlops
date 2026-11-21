@@ -12,3 +12,12 @@ all:
 
 test:
 	pytest -v
+
+track:
+	python main.py --step all --track --run-name v2-impute
+
+track-v1:
+	python main.py --step all --track --keep-zeros --run-name v1-raw-zeros
+
+ui:
+	mlflow ui --backend-store-uri sqlite:///mlflow.db

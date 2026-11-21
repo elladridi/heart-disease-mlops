@@ -88,3 +88,17 @@ no longer trains on impossible values.
 Small dataset, single train/test split (cross-validation would give a more
 reliable estimate), no probability calibration, and the model is not
 clinically validated.
+
+## 9. Experiment tracking (MLflow)
+
+MLflow is optional (`pip install -r requirements-mlflow.txt`).
+
+```bash
+make track-v1   # raw data, zeros kept
+make track      # zeros imputed
+make ui         # open http://localhost:5000
+```
+
+Each run records parameters (`n_estimators`, `zero_as_missing`), metrics
+(accuracy, precision, recall, F1, ROC-AUC, confusion matrix) and the model
+file, so experiments can be compared side by side.

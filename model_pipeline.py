@@ -1,5 +1,7 @@
 """Modular ML pipeline for heart disease prediction."""
 
+import logging
+
 import joblib
 import pandas as pd
 from sklearn.compose import ColumnTransformer
@@ -11,20 +13,21 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
+logger = logging.getLogger(__name__)
+
 TARGET = "HeartDisease"
 ZERO_MEANS_MISSING = ["Cholesterol", "RestingBP"]
 
 
-def prepare_data(path, test_size=0.2, random_state=42):
+def prepare_data(path, test_size=0.2, random_state=42, zero_as_missing=True):
     """Load the CSV, clean it and split it into train/test sets.
-
-    Zeros in Cholesterol and RestingBP mean "not measured", so they are
-    converted to NaN and imputed later inside the model pipeline.
 
     Args:
         path (str): Path to heart.csv.
         test_size (float): Fraction of data used for testing.
         random_state (int): Seed for a reproducible split.
+        zero_as_missing (bool): If True, zeros in Cholesterol and RestingBP
+            ("not measured") become NaN and are imputed in the pipeline.
 
     Returns:
         tuple: X_train, X_test, y_train, y_test
@@ -32,10 +35,17 @@ def prepare_data(path, test_size=0.2, random_state=42):
     df = pd.read_csv(path)
     if TARGET not in df.columns:
         raise ValueError(f"Column '{TARGET}' not found in {path}")
+    n_before = len(df)
     df = df.drop_duplicates()
-    for col in ZERO_MEANS_MISSING:
-        if col in df.columns:
-            df[col] = df[col].replace(0, float("nan"))
+    logger.info("Loaded %s: %d rows (%d after dropping duplicates)",
+                path, n_before, len(df))
+
+    if zero_as_missing:
+        for col in ZERO_MEANS_MISSING:
+            if col in df.columns:
+                n_zero = int((df[col] == 0).sum())
+                df[col] = df[col].replace(0, float("nan"))
+                logger.info("%s: %d zeros converted to missing", col, n_zero)
 
     X = df.drop(columns=TARGET)
     y = df[TARGET]
@@ -65,6 +75,7 @@ def train_model(X_train, y_train, n_estimators=200, random_state=42):
         ("clf", RandomForestClassifier(n_estimators=n_estimators,
                                        random_state=random_state)),
     ])
+    logger.info("Training on %d rows (%d trees)", len(X_train), n_estimators)
     model.fit(X_train, y_train)
     return model
 
@@ -90,9 +101,10 @@ def evaluate_model(model, X_test, y_test):
 def save_model(model, path="model.joblib"):
     """Save the trained model to disk with joblib."""
     joblib.dump(model, path)
-    print(f"Model saved to {path}")
+    logger.info("Model saved to %s", path)
 
 
 def load_model(path="model.joblib"):
     """Load a saved model from disk."""
+    logger.info("Loading model from %s", path)
     return joblib.load(path)

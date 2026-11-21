@@ -68,3 +68,9 @@ def test_save_and_load_give_same_predictions(csv_path, tmp_path):
     save_model(model, path)
     loaded = load_model(path)
     assert (model.predict(X_test) == loaded.predict(X_test)).all()
+
+
+def test_keep_zeros_option(csv_path):
+    X_train, X_test, _, _ = prepare_data(csv_path, zero_as_missing=False)
+    zeros = (X_train["Cholesterol"] == 0).sum() + (X_test["Cholesterol"] == 0).sum()
+    assert zeros == 10
