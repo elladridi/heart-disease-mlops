@@ -28,3 +28,12 @@ docker-build:
 docker-run:
 	mkdir -p models
 	docker run --rm -v $(CURDIR)/models:/app/models heart-disease-mlops python main.py --step all --model-path models/model.joblib
+
+api:
+	uvicorn api:app --host 127.0.0.1 --port 8000
+
+cv:
+	python main.py --step cv
+
+track-cv:
+	python main.py --step cv --track --run-name cv-5fold

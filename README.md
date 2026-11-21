@@ -113,3 +113,14 @@ docker run --rm heart-disease-mlops   # train + evaluate inside the container
 The image uses Python 3.12 and runs `python main.py --step all` by default.
 (From WSL this requires Docker Desktop's WSL integration; otherwise run
 the commands from PowerShell.)
+
+## 12. Cross-validation
+
+```bash
+make cv         # 5-fold stratified CV on the training set
+make track-cv   # same, recorded in MLflow
+```
+
+Reports mean ± standard deviation of accuracy, precision, recall, F1 and
+ROC-AUC. The held-out test set is not used, so the final results in
+section 6 remain an unbiased estimate.

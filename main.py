@@ -3,8 +3,8 @@
 import argparse
 import logging
 
-from model_pipeline import (evaluate_model, load_model, prepare_data,
-                            save_model, train_model)
+from model_pipeline import (cross_validate_model, evaluate_model, load_model,
+                            prepare_data, save_model, train_model)
 
 logger = logging.getLogger("main")
 N_ESTIMATORS = 200
@@ -37,10 +37,30 @@ def track_with_mlflow(args, metrics):
     logger.info("Run '%s' recorded in MLflow", args.run_name)
 
 
+def track_cv_with_mlflow(args, summary):
+    """Record cross-validation mean/std in MLflow."""
+    import mlflow
+
+    mlflow.set_tracking_uri("sqlite:///mlflow.db")
+    mlflow.set_experiment("heart-disease")
+    with mlflow.start_run(run_name=args.run_name or "cv-5fold"):
+        mlflow.log_params({
+            "model": "RandomForest",
+            "n_estimators": N_ESTIMATORS,
+            "zero_as_missing": not args.keep_zeros,
+            "cv_folds": 5,
+        })
+        for name, value in summary["mean"].items():
+            mlflow.log_metric(f"cv_mean_{name}", value)
+        for name, value in summary["std"].items():
+            mlflow.log_metric(f"cv_std_{name}", value)
+    logger.info("Cross-validation recorded in MLflow")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Heart disease ML pipeline")
     parser.add_argument("--step", required=True,
-                        choices=["prepare", "train", "evaluate", "all"],
+                        choices=["prepare", "train", "evaluate", "cv", "all"],
                         help="Pipeline step to run")
     parser.add_argument("--data", default="heart.csv", help="Path to the CSV")
     parser.add_argument("--model-path", default="model.joblib",
@@ -48,7 +68,7 @@ def main():
     parser.add_argument("--keep-zeros", action="store_true",
                         help="Do NOT treat zero cholesterol/BP as missing (v1)")
     parser.add_argument("--track", action="store_true",
-                        help="Record the run in MLflow (with --step all)")
+                        help="Record the run in MLflow (with --step all or cv)")
     parser.add_argument("--run-name", default=None, help="MLflow run name")
     args = parser.parse_args()
 
@@ -69,6 +89,16 @@ def main():
     elif args.step == "evaluate":
         model = load_model(args.model_path)
         log_metrics(evaluate_model(model, X_test, y_test))
+
+    elif args.step == "cv":
+        # Cross-validation uses the training part only; the test set stays untouched.
+        summary = cross_validate_model(X_train, y_train,
+                                       n_estimators=N_ESTIMATORS)
+        for name, mean in summary["mean"].items():
+            logger.info("CV %s: %.3f +/- %.3f", name, mean,
+                        summary["std"][name])
+        if args.track:
+            track_cv_with_mlflow(args, summary)
 
     elif args.step == "all":
         model = train_model(X_train, y_train, n_estimators=N_ESTIMATORS)

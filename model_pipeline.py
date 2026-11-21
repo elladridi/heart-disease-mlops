@@ -108,3 +108,27 @@ def load_model(path="model.joblib"):
     """Load a saved model from disk."""
     logger.info("Loading model from %s", path)
     return joblib.load(path)
+
+
+def cross_validate_model(X, y, n_splits=5, n_estimators=200, random_state=42):
+    """Stratified k-fold cross-validation using the same pipeline.
+
+    Returns:
+        dict: {"mean": {metric: value}, "std": {metric: value}}
+    """
+    from sklearn.model_selection import StratifiedKFold
+
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=True,
+                          random_state=random_state)
+    rows = []
+    for fold, (tr, va) in enumerate(skf.split(X, y), start=1):
+        model = train_model(X.iloc[tr], y.iloc[tr],
+                            n_estimators=n_estimators,
+                            random_state=random_state)
+        metrics = evaluate_model(model, X.iloc[va], y.iloc[va])
+        metrics.pop("confusion_matrix")
+        rows.append(metrics)
+        logger.info("Fold %d/%d: recall=%.3f f1=%.3f",
+                    fold, n_splits, metrics["recall"], metrics["f1"])
+    df = pd.DataFrame(rows)
+    return {"mean": df.mean().to_dict(), "std": df.std().to_dict()}

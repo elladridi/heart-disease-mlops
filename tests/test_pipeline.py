@@ -74,3 +74,11 @@ def test_keep_zeros_option(csv_path):
     X_train, X_test, _, _ = prepare_data(csv_path, zero_as_missing=False)
     zeros = (X_train["Cholesterol"] == 0).sum() + (X_test["Cholesterol"] == 0).sum()
     assert zeros == 10
+
+
+def test_cross_validation_returns_mean_and_std(csv_path):
+    from model_pipeline import cross_validate_model
+    X_train, _, y_train, _ = prepare_data(csv_path)
+    summary = cross_validate_model(X_train, y_train, n_splits=3, n_estimators=10)
+    assert set(summary) == {"mean", "std"}
+    assert 0.0 <= summary["mean"]["recall"] <= 1.0
