@@ -26,7 +26,7 @@ https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction
 | `model_pipeline.py` | `prepare_data`, `train_model`, `evaluate_model`, `save_model`, `load_model`, `cross_validate_model` |
 | `main.py` | CLI to run each step (`prepare`, `train`, `evaluate`, `cv`, `all`) |
 | `api.py` | FastAPI service: `GET /health`, `POST /predict` |
-| `tests/test_pipeline.py`, `tests/test_api.py` | 12 pytest tests (synthetic data, no CSV needed) |
+| `tests/test_pipeline.py`, `tests/test_api.py` | 17 pytest tests (synthetic data, no CSV needed) |
 | `Makefile` | shortcuts for every step |
 | `Dockerfile` | container image running the training pipeline |
 | `.github/workflows/ci.yml` | CI: install, test, train, upload model |
