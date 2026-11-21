@@ -7,8 +7,14 @@ import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
-from sklearn.metrics import (accuracy_score, confusion_matrix, f1_score,
-                             precision_score, recall_score, roc_auc_score)
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -37,8 +43,7 @@ def prepare_data(path, test_size=0.2, random_state=42, zero_as_missing=True):
         raise ValueError(f"Column '{TARGET}' not found in {path}")
     n_before = len(df)
     df = df.drop_duplicates()
-    logger.info("Loaded %s: %d rows (%d after dropping duplicates)",
-                path, n_before, len(df))
+    logger.info("Loaded %s: %d rows (%d after dropping duplicates)", path, n_before, len(df))
 
     if zero_as_missing:
         for col in ZERO_MEANS_MISSING:
@@ -49,8 +54,7 @@ def prepare_data(path, test_size=0.2, random_state=42, zero_as_missing=True):
 
     X = df.drop(columns=TARGET)
     y = df[TARGET]
-    return train_test_split(X, y, test_size=test_size,
-                            stratify=y, random_state=random_state)
+    return train_test_split(X, y, test_size=test_size, stratify=y, random_state=random_state)
 
 
 def train_model(X_train, y_train, n_estimators=200, random_state=42):
@@ -65,16 +69,24 @@ def train_model(X_train, y_train, n_estimators=200, random_state=42):
     cat_cols = X_train.select_dtypes(exclude="number").columns.tolist()
     num_cols = X_train.select_dtypes(include="number").columns.tolist()
 
-    preprocessing = ColumnTransformer([
-        ("cat", OneHotEncoder(handle_unknown="ignore"), cat_cols),
-        ("num", Pipeline([("imputer", SimpleImputer(strategy="median")),
-                          ("scaler", StandardScaler())]), num_cols),
-    ])
-    model = Pipeline([
-        ("prep", preprocessing),
-        ("clf", RandomForestClassifier(n_estimators=n_estimators,
-                                       random_state=random_state)),
-    ])
+    preprocessing = ColumnTransformer(
+        [
+            ("cat", OneHotEncoder(handle_unknown="ignore"), cat_cols),
+            (
+                "num",
+                Pipeline(
+                    [("imputer", SimpleImputer(strategy="median")), ("scaler", StandardScaler())]
+                ),
+                num_cols,
+            ),
+        ]
+    )
+    model = Pipeline(
+        [
+            ("prep", preprocessing),
+            ("clf", RandomForestClassifier(n_estimators=n_estimators, random_state=random_state)),
+        ]
+    )
     logger.info("Training on %d rows (%d trees)", len(X_train), n_estimators)
     model.fit(X_train, y_train)
     return model
@@ -118,17 +130,17 @@ def cross_validate_model(X, y, n_splits=5, n_estimators=200, random_state=42):
     """
     from sklearn.model_selection import StratifiedKFold
 
-    skf = StratifiedKFold(n_splits=n_splits, shuffle=True,
-                          random_state=random_state)
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
     rows = []
     for fold, (tr, va) in enumerate(skf.split(X, y), start=1):
-        model = train_model(X.iloc[tr], y.iloc[tr],
-                            n_estimators=n_estimators,
-                            random_state=random_state)
+        model = train_model(
+            X.iloc[tr], y.iloc[tr], n_estimators=n_estimators, random_state=random_state
+        )
         metrics = evaluate_model(model, X.iloc[va], y.iloc[va])
         metrics.pop("confusion_matrix")
         rows.append(metrics)
-        logger.info("Fold %d/%d: recall=%.3f f1=%.3f",
-                    fold, n_splits, metrics["recall"], metrics["f1"])
+        logger.info(
+            "Fold %d/%d: recall=%.3f f1=%.3f", fold, n_splits, metrics["recall"], metrics["f1"]
+        )
     df = pd.DataFrame(rows)
     return {"mean": df.mean().to_dict(), "std": df.std().to_dict()}

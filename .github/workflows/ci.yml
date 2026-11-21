@@ -17,13 +17,29 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt -r requirements-dev.txt
 
-      - name: Run tests
+      - name: Lint (flake8)
+        run: flake8 .
+
+      - name: Format check (black)
+        run: black --check .
+
+      - name: Security scan (bandit)
+        run: bandit -q -r model_pipeline.py main.py api.py check_model.py
+
+      - name: Dependency audit (pip-audit)
+        continue-on-error: true
+        run: pip-audit -r requirements.txt
+
+      - name: Run tests (unit, API and data validation)
         run: pytest -v
 
       - name: Train and evaluate the model
         run: python main.py --step all
+
+      - name: Model quality gate
+        run: python check_model.py
 
       - name: Upload trained model
         uses: actions/upload-artifact@v4

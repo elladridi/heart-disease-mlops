@@ -37,3 +37,16 @@ cv:
 
 track-cv:
 	python main.py --step cv --track --run-name cv-5fold
+
+lint:
+	flake8 .
+	black --check .
+
+format:
+	black .
+
+security:
+	bandit -q -r model_pipeline.py main.py api.py check_model.py
+
+gate:
+	python check_model.py

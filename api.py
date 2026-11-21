@@ -48,8 +48,7 @@ def health():
 def predict(patient: Patient):
     model = state.get("model")
     if model is None:
-        raise HTTPException(status_code=503,
-                            detail="Model not loaded. Run: make train")
+        raise HTTPException(status_code=503, detail="Model not loaded. Run: make train")
     df = pd.DataFrame([patient.model_dump()])
     for col in ZERO_MEANS_MISSING:  # same cleaning rule as in training
         df[col] = df[col].replace(0, float("nan"))

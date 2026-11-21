@@ -2,8 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from model_pipeline import (evaluate_model, load_model, prepare_data,
-                            save_model, train_model)
+from model_pipeline import evaluate_model, load_model, prepare_data, save_model, train_model
 
 
 @pytest.fixture
@@ -11,20 +10,22 @@ def csv_path(tmp_path):
     """Small synthetic dataset with the same columns as heart.csv."""
     rng = np.random.default_rng(0)
     n = 200
-    df = pd.DataFrame({
-        "Age": rng.integers(30, 80, n),
-        "Sex": rng.choice(["M", "F"], n),
-        "ChestPainType": rng.choice(["TA", "ATA", "NAP", "ASY"], n),
-        "RestingBP": rng.integers(100, 180, n),
-        "Cholesterol": rng.integers(150, 350, n),
-        "FastingBS": rng.integers(0, 2, n),
-        "RestingECG": rng.choice(["Normal", "ST", "LVH"], n),
-        "MaxHR": rng.integers(80, 200, n),
-        "ExerciseAngina": rng.choice(["Y", "N"], n),
-        "Oldpeak": rng.random(n) * 3,
-        "ST_Slope": rng.choice(["Up", "Flat", "Down"], n),
-        "HeartDisease": rng.integers(0, 2, n),
-    })
+    df = pd.DataFrame(
+        {
+            "Age": rng.integers(30, 80, n),
+            "Sex": rng.choice(["M", "F"], n),
+            "ChestPainType": rng.choice(["TA", "ATA", "NAP", "ASY"], n),
+            "RestingBP": rng.integers(100, 180, n),
+            "Cholesterol": rng.integers(150, 350, n),
+            "FastingBS": rng.integers(0, 2, n),
+            "RestingECG": rng.choice(["Normal", "ST", "LVH"], n),
+            "MaxHR": rng.integers(80, 200, n),
+            "ExerciseAngina": rng.choice(["Y", "N"], n),
+            "Oldpeak": rng.random(n) * 3,
+            "ST_Slope": rng.choice(["Up", "Flat", "Down"], n),
+            "HeartDisease": rng.integers(0, 2, n),
+        }
+    )
     df.loc[:9, "Cholesterol"] = 0  # simulate "not measured"
     path = tmp_path / "heart.csv"
     df.to_csv(path, index=False)
@@ -78,6 +79,7 @@ def test_keep_zeros_option(csv_path):
 
 def test_cross_validation_returns_mean_and_std(csv_path):
     from model_pipeline import cross_validate_model
+
     X_train, _, y_train, _ = prepare_data(csv_path)
     summary = cross_validate_model(X_train, y_train, n_splits=3, n_estimators=10)
     assert set(summary) == {"mean", "std"}
