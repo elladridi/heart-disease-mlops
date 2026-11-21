@@ -1,3 +1,4 @@
+
 # Heart Disease Prediction: MLOps Pipeline
 
 ![CI](https://github.com/elladridi/heart-disease-mlops/actions/workflows/ci.yml/badge.svg)
@@ -26,10 +27,10 @@ https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction
 | `model_pipeline.py` | `prepare_data`, `train_model`, `evaluate_model`, `save_model`, `load_model`, `cross_validate_model` |
 | `main.py` | CLI to run each step (`prepare`, `train`, `evaluate`, `cv`, `all`) |
 | `api.py` | FastAPI service: `GET /health`, `POST /predict` |
-| `tests/test_pipeline.py`, `tests/test_api.py` | 17 pytest tests (synthetic data, no CSV needed) |
+| `tests/test_pipeline.py`, `tests/test_api.py`, `tests/test_data.py` | 17 tests total: 7 pipeline and 5 API tests use synthetic fixtures; 5 data-validation tests validate the real heart.csv. |
 | `Makefile` | shortcuts for every step |
 | `Dockerfile` | container image running the training pipeline |
-| `.github/workflows/ci.yml` | CI: install, test, train, upload model |
+| `.github/workflows/ci.yml` | CI: lint, format and security checks, tests, train/evaluate, quality gate, artifact upload |
 | `requirements.txt`, `requirements-mlflow.txt` | pinned dependencies (MLflow is optional) |
 
 ## 4. How to run
@@ -118,7 +119,7 @@ The image uses Python 3.12 and runs `python main.py --step all` by default. (Fro
 
 - **Level 0 (manual):** notebook-style experiment run by hand.
 - **Level 1 (partial automation):** modular code, CLI, Makefile, logging, unit tests, Git, reproducible seeds, MLflow tracking, Docker.
-- **Level 2 (automation):** GitHub Actions runs the tests and trains the model on every push and stores it as an artifact; the model is served through an API. Automatic retraining and monitoring are not implemented.
+- **Level 2 (automation):** GitHub Actions runs the tests and trains the model on every push and stores it as an artifact; the model is served through an API. Model registry/versioning, automatic retraining, and monitoring are not implemented.
 
 ## 11. Limitations
 
