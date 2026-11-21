@@ -5,3 +5,4 @@ model.joblib
 .pytest_cache/
 mlruns/
 mlflow.db
+models/

@@ -21,3 +21,10 @@ track-v1:
 
 ui:
 	mlflow ui --backend-store-uri sqlite:///mlflow.db
+
+docker-build:
+	docker build -t heart-disease-mlops .
+
+docker-run:
+	mkdir -p models
+	docker run --rm -v $(CURDIR)/models:/app/models heart-disease-mlops python main.py --step all --model-path models/model.joblib
