@@ -2,8 +2,7 @@
 
 ![CI](https://github.com/elladridi/heart-disease-mlops/actions/workflows/ci.yml/badge.svg)
 
-Educational project for the MLOps course (Workshop 2: code modularization).
-It is not a medical tool.
+This project applies the MLOps course’s code modularization workshop to a heart disease prediction task. It turns a machine learning workflow into reusable Python modules, a command-line interface, and automated tests. It is an educational project, not a medical tool.
 
 ## 1. Business understanding
 
