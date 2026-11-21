@@ -4,6 +4,7 @@ import joblib
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.impute import SimpleImputer
 from sklearn.metrics import (accuracy_score, confusion_matrix, f1_score,
                              precision_score, recall_score, roc_auc_score)
 from sklearn.model_selection import train_test_split
@@ -11,10 +12,14 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 TARGET = "HeartDisease"
+ZERO_MEANS_MISSING = ["Cholesterol", "RestingBP"]
 
 
 def prepare_data(path, test_size=0.2, random_state=42):
-    """Load the CSV, validate it and split it into train/test sets.
+    """Load the CSV, clean it and split it into train/test sets.
+
+    Zeros in Cholesterol and RestingBP mean "not measured", so they are
+    converted to NaN and imputed later inside the model pipeline.
 
     Args:
         path (str): Path to heart.csv.
@@ -28,8 +33,9 @@ def prepare_data(path, test_size=0.2, random_state=42):
     if TARGET not in df.columns:
         raise ValueError(f"Column '{TARGET}' not found in {path}")
     df = df.drop_duplicates()
-    if df.isna().any().any():
-        raise ValueError("Dataset contains missing values")
+    for col in ZERO_MEANS_MISSING:
+        if col in df.columns:
+            df[col] = df[col].replace(0, float("nan"))
 
     X = df.drop(columns=TARGET)
     y = df[TARGET]
@@ -40,7 +46,7 @@ def prepare_data(path, test_size=0.2, random_state=42):
 def train_model(X_train, y_train, n_estimators=200, random_state=42):
     """Build and train a preprocessing + Random Forest pipeline.
 
-    The encoder and scaler live inside the pipeline, so they are
+    The imputer, encoder and scaler live inside the pipeline, so they are
     saved together with the model.
 
     Returns:
@@ -51,7 +57,8 @@ def train_model(X_train, y_train, n_estimators=200, random_state=42):
 
     preprocessing = ColumnTransformer([
         ("cat", OneHotEncoder(handle_unknown="ignore"), cat_cols),
-        ("num", StandardScaler(), num_cols),
+        ("num", Pipeline([("imputer", SimpleImputer(strategy="median")),
+                          ("scaler", StandardScaler())]), num_cols),
     ])
     model = Pipeline([
         ("prep", preprocessing),

@@ -9,3 +9,6 @@ evaluate:
 
 all:
 	python main.py --step all
+
+test:
+	pytest -v
