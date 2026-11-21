@@ -102,3 +102,14 @@ make ui         # open http://localhost:5000
 Each run records parameters (`n_estimators`, `zero_as_missing`), metrics
 (accuracy, precision, recall, F1, ROC-AUC, confusion matrix) and the model
 file, so experiments can be compared side by side.
+
+## 10. Docker
+
+```bash
+docker build -t heart-disease-mlops .
+docker run --rm heart-disease-mlops   # train + evaluate inside the container
+```
+
+The image uses Python 3.12 and runs `python main.py --step all` by default.
+(From WSL this requires Docker Desktop's WSL integration; otherwise run
+the commands from PowerShell.)
