@@ -126,3 +126,7 @@ The image uses Python 3.12 and runs `python main.py --step all` by default. (Fro
 - Probabilities are not calibrated, and the 0.5 decision threshold is not tuned for recall.
 - Cross-validation shows noticeable variance between folds, so small metric differences should not be over-interpreted.
 - The model is not clinically validated.
+
+## Report
+
+The full project report (PDF) is in [docs/Heart_Disease_Report.pdf](docs/Heart_Disease_Report.pdf).
