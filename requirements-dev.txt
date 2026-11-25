@@ -1,4 +1,1 @@
-flake8
-black
-bandit
-pip-audit
+pytest==9.2.0

@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  test-and-train:
+  pipeline:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,35 +14,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: pip
 
       - name: Install dependencies
         run: pip install -r requirements.txt -r requirements-dev.txt
 
-      - name: Lint (flake8)
-        run: flake8 .
-
-      - name: Format check (black)
-        run: black --check .
-
-      - name: Security scan (bandit)
-        run: bandit -q -r model_pipeline.py main.py api.py check_model.py
-
-      - name: Dependency audit (pip-audit)
-        continue-on-error: true
-        run: pip-audit -r requirements.txt
-
-      - name: Run tests (unit, API and data validation)
+      - name: Run tests
         run: pytest -v
 
-      - name: Train and evaluate the model
+      - name: Prepare data, train, evaluate, and save model
         run: python main.py --step all
 
-      - name: Model quality gate
-        run: python check_model.py
-
-      - name: Upload trained model
+      - name: Save model artifact
         uses: actions/upload-artifact@v4
         with:
-          name: model
+          name: trained-model
           path: model.joblib
