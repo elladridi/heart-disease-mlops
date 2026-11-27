@@ -41,7 +41,9 @@ def prepare_data(path, test_size=0.2, random_state=42):
         raise ValueError(f"Column '{TARGET}' not found in {path}")
     n_before = len(df)
     df = df.drop_duplicates()
-    logger.info("Loaded %s: %d rows (%d after dropping duplicates)", path, n_before, len(df))
+    logger.info(
+        "Loaded %s: %d rows (%d after dropping duplicates)", path, n_before, len(df)
+    )
 
     for col in ZERO_MEANS_MISSING:
         if col in df.columns:
@@ -51,7 +53,9 @@ def prepare_data(path, test_size=0.2, random_state=42):
 
     X = df.drop(columns=TARGET)
     y = df[TARGET]
-    return train_test_split(X, y, test_size=test_size, stratify=y, random_state=random_state)
+    return train_test_split(
+        X, y, test_size=test_size, stratify=y, random_state=random_state
+    )
 
 
 def train_model(X_train, y_train, n_estimators=200, random_state=42):
@@ -72,7 +76,10 @@ def train_model(X_train, y_train, n_estimators=200, random_state=42):
             (
                 "num",
                 Pipeline(
-                    [("imputer", SimpleImputer(strategy="median")), ("scaler", StandardScaler())]
+                    [
+                        ("imputer", SimpleImputer(strategy="median")),
+                        ("scaler", StandardScaler()),
+                    ]
                 ),
                 num_cols,
             ),
@@ -81,7 +88,12 @@ def train_model(X_train, y_train, n_estimators=200, random_state=42):
     model = Pipeline(
         [
             ("prep", preprocessing),
-            ("clf", RandomForestClassifier(n_estimators=n_estimators, random_state=random_state)),
+            (
+                "clf",
+                RandomForestClassifier(
+                    n_estimators=n_estimators, random_state=random_state
+                ),
+            ),
         ]
     )
     logger.info("Training on %d rows (%d trees)", len(X_train), n_estimators)
